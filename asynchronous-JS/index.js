@@ -1,7 +1,7 @@
 const fs = require('fs');
 const superagent = require('superagent');
 
-const readFilePro = file => {
+const readFilePro = (file) => {
   return new Promise((resolve, reject) => {
     fs.readFile(file, (err, data) => {
       if (err) reject('I could not find that file 😢');
@@ -10,37 +10,70 @@ const readFilePro = file => {
   });
 };
 
-
-
 const writeFilePro = (file, data) => {
   return new Promise((resolve, reject) => {
-    fs.writeFile(file, data, err => {
+    fs.writeFile(file, data, (err) => {
       if (err) reject('Could not write file 😢');
       resolve('success');
     });
   });
 };
 
-
 const getDogPic = async () => {
-
-  try{
-    const data = await readFilePro(`${__dirname}/doggggg.txt`);
+  try {
+    const data = await readFilePro(`${__dirname}/dog.txt`);
     console.log(`Breed: ${data}`);
-                      
-    const res = await superagent.get(`https://dog.ceo/api/breed/${data}/images/random`);
-    console.log(res.body.message);
+    const res1Pro = superagent.get(
+      `https://dog.ceo/api/breed/${data}/images/random`
+    );
+    const res2Pro = superagent.get(
+      `https://dog.ceo/api/breed/${data}/images/random`
+    );
+    const res3Pro = superagent.get(
+      `https://dog.ceo/api/breed/${data}/images/random`
+    );
 
+      
+    const all = await Promise.all([res1Pro, res2Pro, res3Pro]);
+    //console.log(all);
+    const imgs = all.map(el => el.body.message);
+    console.log(imgs);
     
-  await writeFilePro('dog-img.txt', res.body.message);
-  console.log('Random dog image saved to file!');
+    
+    /*const imgs = all.map(el => el.body.message);
+    console.log(imgs);
+  */
 
-  }catch(err){
+    await writeFilePro('dog-img.txt', imgs.join('\n'));
+
+    console.log('Random dog image saved to file!');
+  } catch (err) {
     console.log(err);
+    throw err;
   }
-}
+  return '2: READY 🐶';
+};
 
-getDogPic();
+(async () => {
+  try {
+    console.log('1: Will get dog pics!');
+    const x = await getDogPic();
+    console.log(x);
+    console.log('3: Done getting dog pics!');
+  } catch (err) {
+    console.log('ERROR 💥');
+  }
+})();
+
+/*
+console.log('1 : Will get dig pics!');
+getDogPic().then(x=>{
+  console.log(x);
+  console.log('2 : Done getting dog pictures!');
+}).catch(err=>{
+  console.log("Error .....");
+});
+*/
 
 /*
 readFilePro(`${__dirname}/dog.txt`)
@@ -61,4 +94,4 @@ readFilePro(`${__dirname}/dog.txt`)
     console.log(err);
   });   
 
-*/ 
+*/
