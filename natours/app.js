@@ -1,9 +1,13 @@
 const fs=require('fs');
 const express=require('express');
 const app = express();
+const morgan = require('morgan');
+ 
 
+//1-Middleware
+
+app.use(morgan('tiny'));
 app.use(express.json());
-
 
 app.use((req,res,next)=>{
    req.requestTime=new Date().toISOString();
@@ -39,6 +43,7 @@ const tours= JSON.parse(
 
 
 
+//2-Route Handler
 const getAllTours=(req,res) => {
 
     console.log("getAllTours");
@@ -70,9 +75,9 @@ const getTour=(req,res) => {
         })
     }
     
-    res.status(200).json({
+    return res.status(200).json({
         status:'Success',
-        //data:{ tour},
+        data:{ tour},
     });
 };
 
@@ -86,13 +91,22 @@ const createTour = (req, res) => {
     tours.push(newTour);
 
     fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`,JSON.stringify(tours),err=>{
-        res.status(201).json({
+    
+        if (err) {
+            // Handle error
+            return res.status(500).json({
+                status: 'Error',
+                message: 'Failed to create tour'
+            });
+        }
+    
+        return res.status(201).json({
             status:'Success',            
             data:{
                 tour:newTour
             }
-        })
-    })    
+        });
+    });    
 }
 
 
@@ -106,7 +120,7 @@ const updateTour=(req,res) => {
         });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
         status:'Success',
         data:{
             tour:'<Updated Tour Here>'
@@ -125,7 +139,7 @@ const deleteTour = (req,res) => {
         });
     }
 
-    res.status(204).json({
+    return res.status(204).json({
         status:'Success',
         data:null
 });
@@ -141,6 +155,8 @@ const deleteTour = (req,res) => {
 //app.delete('/api/v1/tours/:id',deleteTour);
 
 
+//3-Routes
+
 app.route('/api/v1/tours')
 .get(getAllTours)
 .post(createTour);
@@ -151,6 +167,7 @@ app.route('/api/v1/tours/:id')
 .patch(updateTour)
 .delete(deleteTour);
 
+//4- start Server
 const port=3000;
 app.listen(port,()=>{
 
