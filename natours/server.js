@@ -11,9 +11,9 @@ const DB = process.env.DATABASE.replace(
 
 mongoose
 //  .connect(process.env.DATABASE_LOCAL, {
-  .connect(DB, {
-    //useNewUrlParser: true,
-    //useUnifiedTopology: true // Add this line to use the new server discovery and monitoring engine    
+  .connect(DB, {    
+     useNewUrlParser: true,
+     useUnifiedTopology: true // Add this line to use the new server discovery and monitoring engine    
   })
   .then((con) =>{
     //console.log(con.connections) 
