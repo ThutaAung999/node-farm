@@ -1,18 +1,17 @@
-const fs = require('fs');
 const Tour = require('./../model/tourModel');
 const APIFeatures = require('./../utils/apiFeatures');
-
-const catchAsyncErr = require('./../utils/catchAsyncErr');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
+const mongoose = require('mongoose');
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
-  req.query.sort = '-ratingAverage,price';
-  req.query.fields = 'name,price,ratingAverage,summary,difficulty';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
   next();
 };
 
-exports.getAllTours = catchAsyncErr(async (req, res,next) => {
-  //Execute the query
+exports.getAllTours = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(Tour.find(), req.query)
     .filter()
     .sort()
@@ -20,143 +19,216 @@ exports.getAllTours = catchAsyncErr(async (req, res,next) => {
     .paginate();
   const tours = await features.query;
 
-  console.log('tours', tours);
-
+  // SEND RESPONSE
   res.status(200).json({
-    status: 'Success',
-    requestedAt: req.requestTime,
+    status: 'success',
     results: tours.length,
     data: {
-      tours,
-    },
+      tours
+    }
   });
 });
 
-exports.getTour = catchAsyncErr( async (req, res,next) => {
-  
-    const tour = await Tour.findById(req.params.id);
+/* exports.getTour = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findById(req.params.id);
+  // Tour.findOne({ _id: req.params.id })
 
-    return res.status(200).json({
-      status: 'Success',
-      data: { tour },
-    });
-  
-});
+  console.log("tour", tour);
 
-exports.createTour = catchAsyncErr(async (req, res,next) => {
-  const newTour = await Tour.create(req.body);
-  return res.status(201).json({
-    status: 'Success',
+  if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
     data: {
-      tour: newTour,
-    },
+      tour
+    }
+  });
+}); */
+
+exports.getTour = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  // Check if the provided ID is in a valid ObjectId format
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    //return next(new AppError('Invalid ID format', 400)); // Bad request
+    return next(new AppError('No tour found with that ID', 404));
+    
+  }
+
+  const tour = await Tour.findById(id);
+
+  console.log("Tour", tour);
+  /* if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  } */
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour
+    }
   });
 });
 
+exports.createTour = catchAsync(async (req, res, next) => {
+  const newTour = await Tour.create(req.body);
 
-exports.updateTour = catchAsyncErr( async (req, res,next) => {  
+  res.status(201).json({
+    status: 'success',
+    data: {
+      tour: newTour
+    }
+  });
+});
+
+/* exports.updateTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true
   });
   
-  return res.status(200).json({
-    status: 'Success',
-    data: { tour },
+  if (!tour) {
+  
+    return next(new AppError('No tour found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour
+    }
   });
+}); */
 
-});    
+exports.updateTour = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
 
-
-
-exports.deleteTour = catchAsyncErr( async (req, res,next) => {
-  
-    await Tour.findByIdAndDelete(req.params.id);
-
-    return res.status(204).json({
-      status: 'Success',
-      data: null,
-    });
-  
-});
-
-exports.getTourStats = catchAsyncErr(async (req, res,next) => {  
-    const stats = await Tour.aggregate([
-      {
-        $match: { ratingAverage: { $gte: 4.5 } },
-      },
-      {
-        $group: {
-          //_id:'$ratingAverage',
-          _id: { $toUpper: '$difficulty' },
-          numTours: { $sum: 1 },
-          numRatings: { $sum: '$ratingQuantity' },
-          avgRating: { $avg: '$ratingAverage' },
-          avgPrice: { $avg: '$price' },
-          minPrice: { $min: '$price' },
-          maxPrice: { $max: '$price' },
-        },
-      },
-      {
-        $sort: { avgPrice: 1 },
-      },
-      /* {
-        $match:{_id:{$ne:'EASY'}}
-      } */
-    ]);
-
-    return res.status(200).json({
-      status: 'Success',
-      data: {
-        stats,
-      },
-    });    
-});
-
-exports.getMonthlyPlan = catchAsyncErr( async (req, res,next) => {
-  
-    const year = req.params.year * 1; //2021
-
-    const plan = await Tour.aggregate([
-      {
-        $unwind: '$startDates',
-      },
-      {
-        $match: {
-          startDates: {
-            $gte: new Date(`${year}-01-01`),
-            $lte: new Date(`${year}-12-31`),
-          },
-        },
-      },
-      {
-        $group: {
-          _id: { $month: '$startDates' },
-          numTourStarts: { $sum: 1 },
-          tours: { $push: '$name' },
-        },
-      },
-      {
-        $addFields: { month: '$_id' },
-      },
-      {
-        $project: {
-          _id: 0,
-        },
-      },
-      {
-        $sort: { numTourStarts: -1 },
-      },
-      {
-        $limit: 6,
-      },
-    ]);
-
-    return res.status(200).json({
-      status: 'Success',
-      data: {
-        plan,
-      },
+  // Check if the provided ID is in a valid ObjectId format
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    //return next(new AppError('Invalid ID format', 400)); // Bad request
+    return next(new AppError('No tour found with that ID', 404));
+    
+  }
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
     });
 
+    /* if (!tour) {
+      // Enhanced error handling for invalid ID:
+      return next(new AppError('No tour found with that ID', 404));
+    } */
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour
+      }
+    });
+  } catch (error) {
+    // Handle other potential errors:
+    next(error);
+  }
+});
+
+exports.deleteTour = catchAsync(async (req, res, next) => {
+
+  const { id } = req.params;
+  // Check if the provided ID is in a valid ObjectId format
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    //return next(new AppError('Invalid ID format', 400)); // Bad request
+    return next(new AppError('No tour found with that ID', 404));
+    
+  }
+  const tour = await Tour.findByIdAndDelete(req.params.id);
+
+/*   if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  } */
+
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+});
+
+exports.getTourStats = catchAsync(async (req, res, next) => {
+  const stats = await Tour.aggregate([
+    {
+      $match: { ratingsAverage: { $gte: 4.5 } }
+    },
+    {
+      $group: {
+        _id: { $toUpper: '$difficulty' },
+        numTours: { $sum: 1 },
+        numRatings: { $sum: '$ratingsQuantity' },
+        avgRating: { $avg: '$ratingsAverage' },
+        avgPrice: { $avg: '$price' },
+        minPrice: { $min: '$price' },
+        maxPrice: { $max: '$price' }
+      }
+    },
+    {
+      $sort: { avgPrice: 1 }
+    }
+    // {
+    //   $match: { _id: { $ne: 'EASY' } }
+    // }
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats
+    }
+  });
+});
+
+exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
+  const year = req.params.year * 1; // 2021
+
+  const plan = await Tour.aggregate([
+    {
+      $unwind: '$startDates'
+    },
+    {
+      $match: {
+        startDates: {
+          $gte: new Date(`${year}-01-01`),
+          $lte: new Date(`${year}-12-31`)
+        }
+      }
+    },
+    {
+      $group: {
+        _id: { $month: '$startDates' },
+        numTourStarts: { $sum: 1 },
+        tours: { $push: '$name' }
+      }
+    },
+    {
+      $addFields: { month: '$_id' }
+    },
+    {
+      $project: {
+        _id: 0
+      }
+    },
+    {
+      $sort: { numTourStarts: -1 }
+    },
+    {
+      $limit: 12
+    }
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      plan
+    }
+  });
 });
