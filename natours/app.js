@@ -17,15 +17,19 @@ app.use(express.json());
 app.use(express.static(`${__dirname}/public`));
 
 app.use((req, res, next) => {
+  console.log("custom middleware to print current time")
   req.requestTime = new Date().toISOString();
+  
   next();
 });
 
+
 // 3) ROUTES
-app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/tours', tourRouter);//Prod အတွက် middleware မှာ error တက်နေ
 app.use('/api/v1/users', userRouter);
 
 app.all('*', (req, res, next) => {
+  console.log("invalid request middleware")
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

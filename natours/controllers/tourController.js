@@ -29,11 +29,20 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
   });
 });
 
-/* exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id);
-  // Tour.findOne({ _id: req.params.id })
 
-  console.log("tour", tour);
+exports.getTour = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+/* 
+  // Check if the provided ID is in a valid ObjectId format
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    //return next(new AppError('Invalid ID format', 400)); // Bad request
+    return next(new AppError('No tour found with that ID', 404));
+    
+  } */
+
+  const tour = await Tour.findById(id);
+
+  console.log("Tour", tour);
 
   if (!tour) {
     return next(new AppError('No tour found with that ID', 404));
@@ -45,31 +54,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
       tour
     }
   });
-}); */
 
-exports.getTour = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  // Check if the provided ID is in a valid ObjectId format
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    //return next(new AppError('Invalid ID format', 400)); // Bad request
-    return next(new AppError('No tour found with that ID', 404));
-    
-  }
-
-  const tour = await Tour.findById(id);
-
-  console.log("Tour", tour);
-  /* if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  } */
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour
-    }
-  });
 });
 
 exports.createTour = catchAsync(async (req, res, next) => {
@@ -117,10 +102,9 @@ exports.updateTour = catchAsync(async (req, res, next) => {
       runValidators: true
     });
 
-    /* if (!tour) {
-      // Enhanced error handling for invalid ID:
+    if (!tour) {
       return next(new AppError('No tour found with that ID', 404));
-    } */
+    }
 
     res.status(200).json({
       status: 'success',
@@ -145,9 +129,9 @@ exports.deleteTour = catchAsync(async (req, res, next) => {
   }
   const tour = await Tour.findByIdAndDelete(req.params.id);
 
-/*   if (!tour) {
+  if (!tour) {
     return next(new AppError('No tour found with that ID', 404));
-  } */
+  }
 
   res.status(204).json({
     status: 'success',
