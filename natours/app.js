@@ -6,9 +6,12 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
+const rateLimit = require('express-rate-limit');
+
+
 const app = express();
 
-// 1) MIDDLEWARES
+// 1) GLOBAL MIDDLEWARES
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
