@@ -31,7 +31,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 
 
 exports.getTour = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
+  const { id } = req.params;//object destructuring 
 /* 
   // Check if the provided ID is in a valid ObjectId format
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -40,7 +40,7 @@ exports.getTour = catchAsync(async (req, res, next) => {
     
   } */
 
-  const tour = await Tour.findById(id);
+  const tour = await Tour.findById(id).populate('guides');
 
   console.log("Tour", tour);
 
