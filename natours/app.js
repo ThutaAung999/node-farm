@@ -9,6 +9,9 @@ const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const xss = require('xss-clean');
 
+const reviewRouter = require('./routes/reviewRoutes');
+
+
 
 const hpp=require('hpp');
 const helmet = require('helmet');
@@ -73,6 +76,7 @@ app.use((req, res, next) => {
 // 3) ROUTES
 app.use('/api/v1/tours', tourRouter);//Prod အတွက် middleware မှာ error တက်နေ
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 app.all('*', (req, res, next) => {
   console.log("invalid request middleware")
