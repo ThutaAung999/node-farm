@@ -1,6 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
 
+const path=require('path');
+
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -19,7 +21,14 @@ const helmet = require('helmet');
 
 const app = express();
 
+app.set('view engine','pug');
+app.set('views',path.join(__dirname,'views'));
+
+
 // 1) GLOBAL MIDDLEWARES
+//Serving staic files
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Set security HTTP headers
 app.use(helmet());
 
@@ -27,7 +36,6 @@ app.use(helmet());
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-
 
 // Limit requests from same API
 const limiter = rateLimit({
@@ -60,8 +68,6 @@ app.use(
   })
 );
 
-//Serving staic files
-app.use(express.static(`${__dirname}/public`));
 
 
 //Test middleware
@@ -74,6 +80,14 @@ app.use((req, res, next) => {
 
 
 // 3) ROUTES
+app.get('/',(req,res) => {
+  res.status(200).render('base',{
+    tour:'The Forest Hiker',
+    user:'Htein'
+  });
+})
+
+
 app.use('/api/v1/tours', tourRouter);//Prod အတွက် middleware မှာ error တက်နေ
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
