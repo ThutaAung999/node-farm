@@ -1,6 +1,7 @@
 const User = require('./../model/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
+const factory= require('./handlerFactory');
 
 
 const filterObj = (obj, ...allowedFields) => {
@@ -11,8 +12,12 @@ const filterObj = (obj, ...allowedFields) => {
     return newObj;
   };
   
+  exports.getMe = (req, res, next) => {
+    req.params.id = req.user.id;
+    next();
+  };
 
-exports.getAllUsers =catchAsync(async (req, res,next) =>{
+/* exports.getAllUsers =catchAsync(async (req, res,next) =>{
     const users = await User.find();
 
     // SEND RESPONSE
@@ -24,7 +29,7 @@ exports.getAllUsers =catchAsync(async (req, res,next) =>{
       }
     });
 });
-
+ */
 exports.updateMe = catchAsync(async (req, res, next) => {
     // 1) Create error if user POSTs password data
     if (req.body.password || req.body.passwordConfirm) {
@@ -63,12 +68,12 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
   
 
- exports.getUser = (req, res) =>{
+ /* exports.getUser = (req, res) =>{
     res.status(500).json({
         status: 'Error',
         message: 'This resource is not yet defined',
     });
-};
+}; */
 
  exports.createUser = (req, res) =>{
     res.status(500).json({
@@ -77,16 +82,25 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     });
 };
 
- exports.updateUser = (req, res) =>{
+/*  exports.updateUser = (req, res) =>{
     res.status(500).json({
         status: 'Error',
         message: 'This resource is not yet defined',
     });
 };
-
+ */
+/* 
 exports.deleteUser = (req, res) =>{
     res.status(500).json({
         status: 'Error',
         message: 'This resource is not yet defined',
     });
-};
+}; */
+
+exports.getUser = factory.getOne(User);
+exports.getAllUsers = factory.getAll(User);
+
+// Do NOT update passwords with this!
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);
+
