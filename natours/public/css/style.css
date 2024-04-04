@@ -493,6 +493,7 @@ body {
 }
 .overview-box__text {
   text-transform: capitalize;
+  font-size: medium;
 }
 .overview-box__img {
   border-radius: 50%;
