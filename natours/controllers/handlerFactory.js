@@ -18,7 +18,7 @@ exports.deleteOne = Model =>
       data: null
     });
   });
-
+/* 
 exports.updateOne = Model =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
@@ -37,6 +37,34 @@ exports.updateOne = Model =>
       }
     });
   });
+ */
+
+  
+  exports.updateOne = Model =>
+   catchAsync(async (req, res, next) => {
+     const doc = await Model.findById(req.params.id);
+
+     if (!doc) {
+       return next(new AppError('No document found with that ID', 404));
+     }
+
+     // Update document properties with data from req.body
+     Object.keys(req.body).forEach(key => {
+       doc[key] = req.body[key];
+     });
+
+     // Save the updated document
+     await doc.save();
+
+     res.status(200).json({
+       status: 'success',
+       data: {
+         data: doc
+       }
+     });
+   });
+
+
 
 exports.createOne = Model =>
   catchAsync(async (req, res, next) => {
@@ -51,7 +79,9 @@ exports.createOne = Model =>
   });
 
 exports.getOne = (Model, popOptions) =>
+
   catchAsync(async (req, res, next) => {
+    console.log('inside getOne');
     let query = Model.findById(req.params.id);
     if (popOptions) query = query.populate(popOptions);
     const doc = await query;
