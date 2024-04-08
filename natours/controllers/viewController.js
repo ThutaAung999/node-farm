@@ -72,3 +72,10 @@ exports.updateUserData = catchAsync(async (req, res, next) => {
     user: updatedUser
   });
 });
+
+
+exports.getAccount = (req, res) => {
+  res.status(200).render('account', {
+    title: 'Your account'
+  });
+};
