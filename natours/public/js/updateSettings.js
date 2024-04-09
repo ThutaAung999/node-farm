@@ -1,7 +1,10 @@
 /* eslint-disable */
-import axios from 'axios';
+
+ import axios from 'axios';
 import { showAlert } from './alert';
 
+
+/*
 export const updateSettings = async (name, email) => {
   try {
         const res= await axios({
@@ -23,11 +26,13 @@ export const updateSettings = async (name, email) => {
   }
 }
 
-/* // type is either 'password' or 'data'
+ */
+
+ // type is either 'password' or 'data'
 export const updateSettings = async (data, type) => {
   try {
     const url =
-      type === 'password'
+      type === 'password'                     
         ? 'http://localhost:3000/api/v1/users/updateMyPassword'
         : 'http://localhost:3000/api/v1/users/updateMe';
 
@@ -44,4 +49,3 @@ export const updateSettings = async (data, type) => {
     showAlert('error', err.response.data.message);
   }
 };
- */
