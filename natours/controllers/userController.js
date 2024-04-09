@@ -1,5 +1,4 @@
 const multer = require('multer');
-
 const sharp= require('sharp');
 
 const User = require('./../model/userModel');
@@ -20,7 +19,7 @@ const factory= require('./handlerFactory');
  */
 
  const multerStorage = multer.memoryStorage();
- 
+
  const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
