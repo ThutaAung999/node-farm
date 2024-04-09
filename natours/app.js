@@ -82,7 +82,7 @@ app.use(
 app.use((req, res, next) => {
   //console.log("custom middleware to print current time")
   req.requestTime = new Date().toISOString();
-  console.log('req.cookies=',req.cookies);
+ // console.log('req.cookies=',req.cookies);
 //console.log("req.headers:",req.headers);  
   next();
 });
