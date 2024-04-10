@@ -7,7 +7,7 @@ const { response } = require('express');
 
 const { promisify } = require('util');
 
-const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -45,15 +45,32 @@ const createSendToken = (user, statusCode, res) => {
 
 
 exports.signup = catchAsync(async (req, res, next) => {
-  //const newUser = await User.create(req.body);
-  const newUser = await User.create({
+  const newUser = await User.create(req.body);
+  /* const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     role: req.body.role,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     passwordChangedAt: req.body.passwordChangedAt,
+  }); */
+
+/*   const newUser = await User.create({
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password,
+    passwordConfirm: req.body.passwordConfirm
   });
+ */
+ 
+ let host=req.get('host');
+ console.log('host :',host);
+ if(host==='127.0.0.1:3000')
+    host = 'localhost:3000';
+    console.log('host :',host);
+  const url = `${req.protocol}://${host}/me`;
+  console.log('url :',url);
+  await new Email(newUser, url).sendWelcome();
 
   createSendToken(newUser, 201, res);
  /*  const token = signToken(newUser._id);
@@ -220,11 +237,12 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   console.log('user.email =', user.email);
 
   try {
-    await sendEmail({
+    /* await sendEmail({
       email: user.email,
       subject: 'Your password reset token (valid for 10 min)',
       message,
-    });
+    }); */
+
     console.log('testing');
     res.status(200).json({
       status: 'success',
